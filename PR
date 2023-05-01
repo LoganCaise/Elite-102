@@ -1,0 +1,89 @@
+import mysql.connector
+
+
+db = mysql.connector.connect(
+    host="localhost:3306",
+    user="root",
+    password="10062006L$c",
+    database="bank"
+)
+
+
+cursor = db.cursor()
+
+
+cursor.execute("CREATE TABLE IF NOT EXISTS accounts (id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(255), balance INT)")
+
+
+def create_account():
+    name = input('Enter your name: ')
+    balance = float(input('Enter your starting balance: '))
+    cursor.execute("INSERT INTO accounts (name, balance) VALUES (%s, %s)", (name, balance))
+    db.commit()
+    print('Account created successfully!')
+
+
+def deposit():
+    account_id = int(input('Enter your account ID: '))
+    amount = float(input('Enter the amount to deposit: '))
+    cursor.execute("SELECT balance FROM accounts WHERE id=%s", (account_id,))
+    result = cursor.fetchone()
+    if result is not None:
+        balance = result[0] + amount
+        cursor.execute("UPDATE accounts SET balance=%s WHERE id=%s", (balance, account_id))
+        db.commit()
+        print('Deposit successful!')
+    else:
+        print('Account not found!')
+
+
+def withdraw():
+    account_id = int(input('Enter your account ID: '))
+    amount = float(input('Enter the amount to withdraw: '))
+    cursor.execute("SELECT balance FROM accounts WHERE id=%s", (account_id,))
+    result = cursor.fetchone()
+    if result is not None:
+        balance = result[0] - amount
+        if balance >= 0:
+            cursor.execute("UPDATE accounts SET balance=%s WHERE id=%s", (balance, account_id))
+            db.commit()
+            print('Withdrawal successful!')
+        else:
+            print('Insufficient funds!')
+    else:
+        print('Account not found!')
+
+
+def check_balance():
+    account_id = int(input('Enter your account ID: '))
+    cursor.execute("SELECT balance FROM accounts WHERE id=%s", (account_id,))
+    result = cursor.fetchone()
+    if result is not None:
+        balance = result[0]
+        print(f'Your balance is {balance}')
+    else:
+        print('Account not found!')
+
+
+print('Welcome to our bank!')
+
+
+while True:
+    choice = int(input('Please choose an option:\n1. Create account\n2. Deposit\n3. Withdraw\n4. Check balance\n5. Exit\n'))
+    if choice == 1:
+        create_account()
+    elif choice == 2:
+        deposit()
+    elif choice == 3:
+        withdraw()
+    elif choice == 4:
+        check_balance()
+    elif choice == 5:
+        break
+    else:
+        print('Invalid choice!')
+
+
+db.close()
+
+print('Thank you for using our bank!')
